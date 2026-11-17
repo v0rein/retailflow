@@ -14,7 +14,7 @@ from pathlib import Path
 MB_URL = os.environ.get("MB_URL", "http://localhost:3000")
 DB_NAME = "RetailFlow Gold"
 DB_FILE = "/data/lakehouse/retailflow.duckdb"  # path inside the Metabase container
-DASHBOARD_NAME = "RetailFlow — E-Commerce Analytics"
+DASHBOARD_NAME = "RetailFlow: E-Commerce Analytics"
 QUERIES_SQL = Path(__file__).with_name("queries.sql")
 
 BRL = {"number_style": "currency", "currency": "BRL"}

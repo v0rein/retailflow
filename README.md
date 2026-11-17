@@ -29,10 +29,10 @@ flowchart LR
 
 **Pipeline flow**
 
-1. **Bronze** — `ingestion/upload_to_adls.py` uploads each raw CSV to its own table folder, `bronze/<table>/<file>.csv` (e.g. `bronze/orders/olist_orders_dataset.csv`), on ADLS Gen2 or a local folder when `USE_LOCAL_STORAGE=true`. The file → table mapping (`BRONZE_TABLES`) is shared with the Spark job. The geolocation CSV is skipped because no model uses it.
-2. **Silver** — `spark_jobs/bronze_to_silver.py` reads the Bronze CSVs, casts types, null-checks business keys, applies accepted-value rules, deduplicates, and writes **Delta Lake** tables to `silver/<table>/`. Bad rows (including uncastable values and duplicate keys) go to the Delta table `bronze/quarantine/<table>/` with a `quarantine_reason` column. Delta commits each overwrite through `_delta_log/`, so a crashed run leaves the previous version readable instead of an empty folder.
-3. **Gold** — dbt reads Silver with DuckDB's `delta` extension (`delta_scan`) and builds 7 staging views, 4 dimensions, 2 facts, and 6 business aggregates in DuckDB, backed by 63 data-quality tests.
-4. **Serving** — Metabase connects to the DuckDB warehouse through the community DuckDB driver; `dashboard/setup_metabase.py` builds the dashboard from the queries in `dashboard/queries.sql`.
+1. **Bronze:** `ingestion/upload_to_adls.py` uploads each raw CSV to its own table folder, `bronze/<table>/<file>.csv` (e.g. `bronze/orders/olist_orders_dataset.csv`), on ADLS Gen2 or a local folder when `USE_LOCAL_STORAGE=true`. The file → table mapping (`BRONZE_TABLES`) is shared with the Spark job. The geolocation CSV is skipped because no model uses it.
+2. **Silver:** `spark_jobs/bronze_to_silver.py` reads the Bronze CSVs, casts types, null-checks business keys, applies accepted-value rules, deduplicates, and writes **Delta Lake** tables to `silver/<table>/`. Bad rows (including uncastable values and duplicate keys) go to the Delta table `bronze/quarantine/<table>/` with a `quarantine_reason` column. Delta commits each overwrite through `_delta_log/`, so a crashed run leaves the previous version readable instead of an empty folder.
+3. **Gold:** dbt reads Silver with DuckDB's `delta` extension (`delta_scan`) and builds 7 staging views, 4 dimensions, 2 facts, and 6 business aggregates in DuckDB, backed by 63 data-quality tests.
+4. **Serving:** Metabase connects to the DuckDB warehouse through the community DuckDB driver; `dashboard/setup_metabase.py` builds the dashboard from the queries in `dashboard/queries.sql`.
 
 ## Business Questions Answered
 
@@ -52,8 +52,8 @@ flowchart LR
 | Order lines | 112,650 |
 | Sellers | 3,095 |
 | Total item + freight revenue (excl. canceled/unavailable) | R$ 15,735,527.03 |
-| Highest-revenue category | `health_beauty` — R$ 1,255,695.13 |
-| Slowest-delivery state | `RR` — 29.3 average days |
+| Highest-revenue category | `health_beauty`, R$ 1,255,695.13 |
+| Slowest-delivery state | `RR`, 29.3 average days |
 | Late-delivery rate (delivered orders) | 6.8% |
 | Top seller | R$ 229,237.63 revenue, 4.14 average review score |
 | Repeat-buyer rate | 3.1% (Olist is dominated by one-off customers) |
@@ -216,14 +216,14 @@ python dashboard/setup_metabase.py
 
 Metabase rejects common passwords.
 
-The script (stdlib only) waits for Metabase, creates the admin user on first start, adds the DuckDB database `/data/lakehouse/retailflow.duckdb` with the driver's **read-only** option on, builds one card per business question from [`dashboard/queries.sql`](dashboard/queries.sql), and lays them out on the dashboard **RetailFlow — E-Commerce Analytics**. It looks everything up by name, so re-running it updates the cards instead of duplicating them. Open the URL it prints (e.g. <http://localhost:3000/dashboard/2>).
+The script (stdlib only) waits for Metabase, creates the admin user on first start, adds the DuckDB database `/data/lakehouse/retailflow.duckdb` with the driver's **read-only** option on, builds one card per business question from [`dashboard/queries.sql`](dashboard/queries.sql), and lays them out on the dashboard **RetailFlow: E-Commerce Analytics**. It looks everything up by name, so re-running it updates the cards instead of duplicating them. Open the URL it prints (e.g. <http://localhost:3000/dashboard/2>).
 
 The lakehouse folder is mounted read-only (`:ro`), so a read-write Metabase connection would fail. A read-only DuckDB connection still locks the file: after a dashboard query, Metabase holds the lock for about 10 minutes (measured), and any `dbt build` in that window fails with a lock error. The DAG's `dbt_build_gold` task retries twice, 10 minutes apart, which outlasts it. For a manual `dbt build` on the host, wait 10 minutes after using the dashboard, or stop Metabase first (`cd dashboard && docker compose stop`).
 
 ## Data Quality
 
 - **Silver rules:** null business keys, invalid order status, invalid payment type/value, invalid review scores, negative prices/freight, and duplicate keys.
-- **Quarantine:** rejected rows, including extra copies of a duplicate key (`duplicate_key`), are persisted with `quarantine_reason` — never silently dropped. Bronze rows always equal clean + quarantined.
+- **Quarantine:** rejected rows, including extra copies of a duplicate key (`duplicate_key`), are persisted with `quarantine_reason`, never silently dropped. Bronze rows always equal clean + quarantined.
 - **Revenue rule:** every revenue number excludes `canceled` and `unavailable` orders via `fact_orders.is_revenue_order`.
 - **dbt tests:** 63 tests covering `not_null`, `unique`, `accepted_values`, and `relationships` between facts and dimensions.
 - **CI:** pytest, dbt compilation, and a dedicated Airflow DAG-structure job.
@@ -264,7 +264,7 @@ Cost: ADLS Gen2 LRS at this data size (well under 1 GB) costs cents per month. `
 
 ## Dataset
 
-[Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) — 9 CSVs, ~100k orders (2016–2018). Prices are in BRL. The data is licensed [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) and isn't redistributed in this repo (`data/` is gitignored); download it from Kaggle.
+[Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce): 9 CSVs, ~100k orders (2016–2018). Prices are in BRL. The data is licensed [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) and isn't redistributed in this repo (`data/` is gitignored); download it from Kaggle.
 
 ## License
 
