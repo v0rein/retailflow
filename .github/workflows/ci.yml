@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest suite
+        run: pytest tests/ -v
+
+      - name: Compile dbt project
+        working-directory: dbt
+        # data/ is gitignored, so create the folder DuckDB writes its file into.
+        run: |
+          mkdir -p ../data/lakehouse
+          dbt compile --profiles-dir .
+
+  airflow-dag:
+    runs-on: ubuntu-latest
+    env:
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////home/runner/airflow/airflow.db
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Airflow
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest==8.1.1
+          pip install "apache-airflow==2.9.1" \
+            --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.1/constraints-3.11.txt"
+
+      - name: Initialize Airflow metadata database
+        run: airflow db migrate
+
+      - name: Validate DAG structure
+        run: pytest tests/test_airflow_dag.py -v

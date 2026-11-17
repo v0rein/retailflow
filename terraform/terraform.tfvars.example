@@ -1,0 +1,4 @@
+# Copy to terraform.tfvars and edit. terraform.tfvars is gitignored.
+location             = "southeastasia"
+resource_group_name  = "rg-retailflow"
+storage_account_name = "retailflowlakeyourname"

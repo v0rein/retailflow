@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="title desc">
+  <title id="title">RetailFlow lakehouse architecture</title>
+  <desc id="desc">Olist CSV files flow through Bronze, Silver, and Gold layers, orchestrated by Airflow and served in Metabase.</desc>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .box { rx: 12; ry: 12; stroke-width: 2; }
+      .label { font-family: 'Segoe UI', Arial, sans-serif; fill: #0f172a; }
+      .muted { font-family: 'Segoe UI', Arial, sans-serif; fill: #475569; }
+      .title { font-family: 'Segoe UI', Arial, sans-serif; font-weight: 700; fill: #0f172a; }
+      .arrow { stroke: #475569; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1200" height="640" fill="#f8fafc"/>
+
+  <text class="title" x="40" y="52" font-size="28">RetailFlow — E-Commerce Lakehouse</text>
+  <text class="muted" x="40" y="80" font-size="16">Olist 100k+ orders · Medallion architecture · PySpark + dbt + Airflow + Metabase</text>
+
+  <!-- Source -->
+  <rect class="box" x="40" y="120" width="190" height="120" fill="#e2e8f0" stroke="#94a3b8"/>
+  <text class="title" x="135" y="158" font-size="17" text-anchor="middle">Raw CSVs</text>
+  <text class="muted" x="135" y="184" font-size="13" text-anchor="middle">Olist Kaggle dataset</text>
+  <text class="muted" x="135" y="204" font-size="13" text-anchor="middle">orders · items · customers</text>
+  <text class="muted" x="135" y="222" font-size="13" text-anchor="middle">products · sellers · payments</text>
+
+  <!-- Bronze -->
+  <rect class="box" x="300" y="120" width="190" height="120" fill="#fef3c7" stroke="#d97706"/>
+  <text class="title" x="395" y="158" font-size="17" text-anchor="middle">Bronze</text>
+  <text class="muted" x="395" y="184" font-size="13" text-anchor="middle">bronze/&lt;table&gt;/ raw CSVs</text>
+  <text class="muted" x="395" y="204" font-size="13" text-anchor="middle">ADLS Gen2 / local FS</text>
+  <text class="muted" x="395" y="222" font-size="13" text-anchor="middle">ingestion/upload_to_adls.py</text>
+
+  <!-- Silver -->
+  <rect class="box" x="560" y="120" width="200" height="120" fill="#dbeafe" stroke="#2563eb"/>
+  <text class="title" x="660" y="158" font-size="17" text-anchor="middle">Silver</text>
+  <text class="muted" x="660" y="184" font-size="13" text-anchor="middle">Typed · deduplicated</text>
+  <text class="muted" x="660" y="204" font-size="13" text-anchor="middle">PySpark cleaning rules</text>
+  <text class="muted" x="660" y="222" font-size="13" text-anchor="middle">Delta Lake tables</text>
+
+  <!-- Gold -->
+  <rect class="box" x="830" y="120" width="200" height="120" fill="#dcfce7" stroke="#16a34a"/>
+  <text class="title" x="930" y="158" font-size="17" text-anchor="middle">Gold</text>
+  <text class="muted" x="930" y="184" font-size="13" text-anchor="middle">dbt star schema</text>
+  <text class="muted" x="930" y="204" font-size="13" text-anchor="middle">dim_* · fact_* · agg_*</text>
+  <text class="muted" x="930" y="222" font-size="13" text-anchor="middle">DuckDB (delta_scan)</text>
+
+  <!-- Serving -->
+  <rect class="box" x="815" y="330" width="230" height="110" fill="#f3e8ff" stroke="#9333ea"/>
+  <text class="title" x="930" y="368" font-size="17" text-anchor="middle">Serving</text>
+  <text class="muted" x="930" y="394" font-size="13" text-anchor="middle">Metabase + DuckDB driver</text>
+  <text class="muted" x="930" y="414" font-size="13" text-anchor="middle">5 business questions</text>
+
+  <!-- Quarantine -->
+  <rect class="box" x="560" y="330" width="200" height="110" fill="#fee2e2" stroke="#dc2626"/>
+  <text class="title" x="660" y="368" font-size="17" text-anchor="middle">Quarantine</text>
+  <text class="muted" x="660" y="394" font-size="13" text-anchor="middle">Bad rows + reason (Delta)</text>
+  <text class="muted" x="660" y="414" font-size="13" text-anchor="middle">never silently dropped</text>
+
+  <!-- Orchestration bar -->
+  <rect class="box" x="40" y="500" width="990" height="90" fill="#ffffff" stroke="#cbd5e1"/>
+  <text class="title" x="60" y="534" font-size="16">Airflow DAG — daily</text>
+  <text class="muted" x="60" y="560" font-size="14">
+    ingest_raw_to_bronze → spark_bronze_to_silver → dbt_build_gold (dbt build: models + tests)
+  </text>
+
+  <!-- Arrows -->
+  <path class="arrow" d="M 230 180 L 292 180"/>
+  <path class="arrow" d="M 490 180 L 552 180"/>
+  <path class="arrow" d="M 760 180 L 822 180"/>
+  <path class="arrow" d="M 930 240 L 930 322"/>
+  <path class="arrow" d="M 660 240 L 660 322"/>
+
+  <!-- Arrow labels -->
+  <text class="muted" x="244" y="170" font-size="12">upload</text>
+  <text class="muted" x="500" y="170" font-size="12">clean</text>
+  <text class="muted" x="772" y="170" font-size="12">model</text>
+  <text class="muted" x="670" y="290" font-size="12">invalid rows</text>
+  <text class="muted" x="940" y="290" font-size="12">read-only</text>
+</svg>

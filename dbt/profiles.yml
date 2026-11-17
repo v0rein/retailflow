@@ -1,0 +1,20 @@
+retailflow_duckdb:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', '../data/lakehouse/retailflow.duckdb') }}"
+      threads: 2
+      # Installed on first run, then loaded on every connection; provides delta_scan.
+      extensions:
+        - delta
+      settings:
+        # Delta stores timestamps as UTC instants; delta_scan returns them with a
+        # time zone. Spark wrote them in UTC, so cast back in UTC too, or the
+        # host's zone shifts every timestamp (and the late-delivery rate).
+        TimeZone: UTC
+      config_options:
+        # Python duckdb 2.x writes a newer file format by default. Metabase's
+        # DuckDB driver runs DuckDB 1.5.x and can't open that, so write the
+        # 1.5-compatible format instead. Remove once the driver reaches 2.x.
+        storage_compatibility_version: v1.5.0

@@ -1,0 +1,18 @@
+services:
+  metabase:
+    # Debian-based Metabase image with the DuckDB community driver preinstalled.
+    # https://github.com/motherduckdb/metabase_duckdb_driver
+    # Pinned: Metabase 0.63.17 + DuckDB driver 1.5.6.0 (`:latest` can change under us).
+    image: ghcr.io/motherduckdb/metabase-duckdb:0.63.17-duckdb1.5.6.0
+    container_name: retailflow-metabase
+    ports:
+      - "3000:3000"
+    volumes:
+      # Read-only mount plus a read-only DuckDB connection (see README). A reader
+      # still locks the file, and Metabase holds it ~10 min after a query
+      # (measured); the DAG's dbt task retries every 10 min to outlast it.
+      - ../data/lakehouse:/data/lakehouse:ro
+      - ./metabase-data:/metabase-data
+    environment:
+      - MB_DB_FILE=/metabase-data/metabase.db
+    restart: unless-stopped

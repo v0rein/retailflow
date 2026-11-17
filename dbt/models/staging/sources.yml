@@ -1,0 +1,19 @@
+version: 2
+
+sources:
+  - name: silver
+    description: "Cleaned Olist Delta tables produced by spark_jobs/bronze_to_silver.py"
+    schema: silver
+    meta:
+      # delta_scan reads only the files the latest _delta_log commit lists.
+      # A *.parquet glob would also pick up files from old or failed writes.
+      external_location: "delta_scan('{{ env_var('SILVER_ROOT', '../data/lakehouse/silver') }}/{identifier}')"
+    tables:
+      - name: orders
+      - name: order_items
+      - name: customers
+      - name: products
+      - name: product_category_translation
+      - name: sellers
+      - name: payments
+      - name: reviews

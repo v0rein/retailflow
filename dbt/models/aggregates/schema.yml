@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: agg_revenue_by_month
+    description: "Monthly revenue and order value for revenue orders (excludes canceled and unavailable)"
+    columns:
+      - name: order_year_month
+        data_tests:
+          - not_null
+          - unique
+      - name: total_revenue
+        data_tests:
+          - not_null
+
+  - name: agg_revenue_by_category
+    description: "Revenue, units, and orders by English product category"
+    columns:
+      - name: category
+        data_tests:
+          - not_null
+          - unique
+      - name: category_revenue
+        data_tests:
+          - not_null
+
+  - name: agg_delivery_performance
+    description: "Monthly delivery lead time and late-delivery rate"
+    columns:
+      - name: order_year_month
+        data_tests:
+          - not_null
+          - unique
+
+  - name: agg_delivery_by_state
+    description: "Delivery lead time and late-delivery rate by customer state"
+    columns:
+      - name: customer_state
+        data_tests:
+          - not_null
+          - unique
+
+  - name: agg_customer_retention
+    description: "Repeat purchase rate by first-purchase cohort month"
+    columns:
+      - name: cohort_month
+        data_tests:
+          - not_null
+          - unique
+
+  - name: agg_seller_performance
+    description: "Revenue, volume, and average review score per seller"
+    columns:
+      - name: seller_id
+        data_tests:
+          - not_null
+          - unique
